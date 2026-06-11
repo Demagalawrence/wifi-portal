@@ -1,0 +1,17 @@
+backend/venv/
+backend/db.sqlite3
+backend/media/
+backend/staticfiles/
+**/__pycache__/
+*.py[cod]
+
+wifi-portal/node_modules/
+wifi-portal/build/
+wifi-portal/coverage/
+
+.env
+.env.*
+!.env.example
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
