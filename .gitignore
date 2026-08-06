@@ -1,17 +1,52 @@
-backend/venv/
-backend/db.sqlite3
-backend/media/
-backend/staticfiles/
-**/__pycache__/
-*.py[cod]
+# Dependencies
+node_modules/
+**/node_modules/
+.pnp
+.pnp.js
 
-wifi-portal/node_modules/
-wifi-portal/build/
-wifi-portal/coverage/
+# Build Outputs
+dist/
+**/dist/
+.next/
+**/.next/
+out/
+build/
+coverage/
+*.tsbuildinfo
 
+# SQLite & Databases
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+backend/prisma/dev.db
+
+# Environment Files
 .env
 .env.*
 !.env.example
+*.env
+
+# Logs & Debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.log
+
+# IDE & OS Files
+.DS_Store
+.vscode/
+.idea/
+.claude/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Operating system files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
