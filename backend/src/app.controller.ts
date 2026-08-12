@@ -75,7 +75,9 @@ export class AppController {
   }
 
   @Get('api/accounts/status')
-  userStatus(@Headers('authorization') authorization?: string): Promise<unknown> {
+  userStatus(
+    @Headers('authorization') authorization?: string,
+  ): Promise<unknown> {
     return this.appService.userStatus(authorization);
   }
 
@@ -99,7 +101,9 @@ export class AppController {
   }
 
   @Get('api/payments/history')
-  paymentHistory(@Headers('authorization') authorization?: string): Promise<unknown> {
+  paymentHistory(
+    @Headers('authorization') authorization?: string,
+  ): Promise<unknown> {
     return this.appService.paymentHistory(authorization);
   }
 
@@ -135,12 +139,16 @@ export class AppController {
   }
 
   @Get('api/sessions/current')
-  currentSession(@Headers('authorization') authorization?: string): Promise<unknown> {
+  currentSession(
+    @Headers('authorization') authorization?: string,
+  ): Promise<unknown> {
     return this.appService.currentSession(authorization);
   }
 
   @Get('api/sessions/history')
-  sessionHistory(@Headers('authorization') authorization?: string): Promise<unknown> {
+  sessionHistory(
+    @Headers('authorization') authorization?: string,
+  ): Promise<unknown> {
     return this.appService.sessionHistory(authorization);
   }
 
@@ -156,17 +164,24 @@ export class AppController {
   /* Admin Dashboard Endpoints */
 
   @Get('api/admin/metrics')
-  getAdminMetrics(): Promise<unknown> {
-    return this.appService.getAdminMetrics();
+  getAdminMetrics(
+    @Headers('authorization') authorization?: string,
+  ): Promise<unknown> {
+    return this.appService.getAdminMetrics(authorization);
   }
 
   @Post('api/admin/vouchers/generate')
-  generateVoucher(@Body() body: GenerateVoucherBody): Promise<unknown> {
-    return this.appService.generateVoucher(body);
+  generateVoucher(
+    @Headers('authorization') authorization: string | undefined,
+    @Body() body: GenerateVoucherBody,
+  ): Promise<unknown> {
+    return this.appService.generateVoucher(authorization, body);
   }
 
   @Get('api/admin/sessions')
-  getAllSessions(): Promise<unknown> {
-    return this.appService.getAllSessions();
+  getAllSessions(
+    @Headers('authorization') authorization?: string,
+  ): Promise<unknown> {
+    return this.appService.getAllSessions(authorization);
   }
 }

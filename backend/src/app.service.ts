@@ -6,7 +6,8 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
-import { randomBytes, randomUUID } from 'node:crypto';
+import { randomBytes } from 'node:crypto';
+import { Prisma, type Plan } from '@prisma/client';
 import { PrismaService } from './prisma/prisma.service';
 
 type PaymentMethod = 'airtel' | 'mtn' | 'mpesa';
@@ -45,6 +46,12 @@ interface GenerateVoucherBody {
   phone_number?: string;
 }
 
+type PaymentWithPlan = Prisma.PaymentGetPayload<{ include: { plan: true } }>;
+type SessionWithPlan = Prisma.SessionGetPayload<{ include: { plan: true } }>;
+type SessionWithRelations = Prisma.SessionGetPayload<{
+  include: { user: true; plan: true };
+}>;
+
 @Injectable()
 export class AppService implements OnModuleInit {
   // Token cache mapping token -> userId for fast authentication lookups
@@ -54,6 +61,7 @@ export class AppService implements OnModuleInit {
 
   async onModuleInit() {
     await this.seedPlansIfEmpty();
+    await this.seedAdminIfEmpty();
   }
 
   getHello(): { status: string; message: string } {
@@ -114,7 +122,9 @@ export class AppService implements OnModuleInit {
     };
   }
 
-  async login(body: LoginBody): Promise<{ message: string; user: unknown; token: string }> {
+  async login(
+    body: LoginBody,
+  ): Promise<{ message: string; user: unknown; token: string }> {
     const username = body.username?.trim();
     const password = body.password ?? '';
 
@@ -160,7 +170,7 @@ export class AppService implements OnModuleInit {
       orderBy: [{ sort_order: 'asc' }, { price: 'asc' }],
     });
 
-    const serialized = plans.map((plan: any) => this.serializePlan(plan));
+    const serialized = plans.map((plan: Plan) => this.serializePlan(plan));
     return { plans: serialized, count: serialized.length };
   }
 
@@ -172,7 +182,11 @@ export class AppService implements OnModuleInit {
   async initiatePayment(
     authorization: string | undefined,
     body: InitiatePaymentBody,
-  ): Promise<{ message: string; payment: unknown; provider_response: unknown }> {
+  ): Promise<{
+    message: string;
+    payment: unknown;
+    provider_response: unknown;
+  }> {
     const user = await this.authenticate(authorization);
     const plan = await this.getActivePlan(body.plan_id ?? '');
 
@@ -201,7 +215,12 @@ export class AppService implements OnModuleInit {
 
     return {
       message: 'Payment initiated successfully',
-      payment: this.serializePayment(payment, user.username, plan.name, plan.duration_display),
+      payment: this.serializePayment(
+        payment,
+        user.username,
+        plan.name,
+        plan.duration_display,
+      ),
       provider_response: {
         transaction_id: payment.transaction_id,
         reference: payment.id,
@@ -218,7 +237,9 @@ export class AppService implements OnModuleInit {
   ): Promise<unknown> {
     const user = await this.authenticate(authorization);
     const payment = await this.getUserPayment(paymentId, user.id);
-    const plan = await this.prisma.plan.findUnique({ where: { id: payment.plan_id } });
+    const plan = await this.prisma.plan.findUnique({
+      where: { id: payment.plan_id },
+    });
     return this.serializePayment(
       payment,
       user.username,
@@ -238,8 +259,13 @@ export class AppService implements OnModuleInit {
       include: { plan: true },
     });
 
-    const serialized = payments.map((p: any) =>
-      this.serializePayment(p, user.username, p.plan.name, p.plan.duration_display),
+    const serialized = payments.map((p: PaymentWithPlan) =>
+      this.serializePayment(
+        p,
+        user.username,
+        p.plan.name,
+        p.plan.duration_display,
+      ),
     );
     return { payments: serialized, count: serialized.length };
   }
@@ -259,7 +285,9 @@ export class AppService implements OnModuleInit {
       },
     });
 
-    const plan = await this.prisma.plan.findUnique({ where: { id: payment.plan_id } });
+    const plan = await this.prisma.plan.findUnique({
+      where: { id: payment.plan_id },
+    });
 
     return {
       message: 'Payment simulated successfully',
@@ -300,7 +328,12 @@ export class AppService implements OnModuleInit {
     }
 
     const plan = await this.getActivePlan(payment.plan_id);
-    const session = await this.createWifiSession(user.id, plan, payment.id, body.mac_address);
+    const session = await this.createWifiSession(
+      user.id,
+      plan,
+      payment.id,
+      body.mac_address,
+    );
     const accessToken = await this.createAccessToken(
       user.id,
       plan,
@@ -312,7 +345,12 @@ export class AppService implements OnModuleInit {
 
     return {
       message: 'WiFi session created successfully',
-      session: this.serializeSession(session, user.username, plan.name, plan.duration_display),
+      session: this.serializeSession(
+        session,
+        user.username,
+        plan.name,
+        plan.duration_display,
+      ),
       access_token: this.serializeAccessToken(
         accessToken,
         user.username,
@@ -361,11 +399,18 @@ export class AppService implements OnModuleInit {
     const user = accessToken.user;
     const plan = accessToken.plan;
     let session = accessToken.session_id
-      ? await this.prisma.session.findUnique({ where: { id: accessToken.session_id } })
+      ? await this.prisma.session.findUnique({
+          where: { id: accessToken.session_id },
+        })
       : null;
 
     if (!session || !(await this.isSessionActive(session))) {
-      session = await this.createWifiSession(user.id, plan, accessToken.payment_id, macAddress);
+      session = await this.createWifiSession(
+        user.id,
+        plan,
+        accessToken.payment_id,
+        macAddress,
+      );
     } else if (macAddress && session.mac_address !== macAddress) {
       session = await this.prisma.session.update({
         where: { id: session.id },
@@ -384,7 +429,12 @@ export class AppService implements OnModuleInit {
 
     return {
       message: 'Token accepted',
-      session: this.serializeSession(session, user.username, plan.name, plan.duration_display),
+      session: this.serializeSession(
+        session,
+        user.username,
+        plan.name,
+        plan.duration_display,
+      ),
       access_token: this.serializeAccessToken(
         updatedToken,
         user.username,
@@ -401,7 +451,9 @@ export class AppService implements OnModuleInit {
       throw new NotFoundException({ message: 'No active session found' });
     }
 
-    const plan = await this.prisma.plan.findUnique({ where: { id: session.plan_id } });
+    const plan = await this.prisma.plan.findUnique({
+      where: { id: session.plan_id },
+    });
 
     return this.serializeSession(
       session,
@@ -422,8 +474,13 @@ export class AppService implements OnModuleInit {
       include: { plan: true },
     });
 
-    const serialized = sessions.map((s: any) =>
-      this.serializeSession(s, user.username, s.plan.name, s.plan.duration_display),
+    const serialized = sessions.map((s: SessionWithPlan) =>
+      this.serializeSession(
+        s,
+        user.username,
+        s.plan.name,
+        s.plan.duration_display,
+      ),
     );
 
     return { sessions: serialized, count: serialized.length };
@@ -462,7 +519,9 @@ export class AppService implements OnModuleInit {
       data: { is_active_session: Boolean(activeRemaining) },
     });
 
-    const plan = await this.prisma.plan.findUnique({ where: { id: session.plan_id } });
+    const plan = await this.prisma.plan.findUnique({
+      where: { id: session.plan_id },
+    });
 
     return {
       message: 'Session terminated successfully',
@@ -477,7 +536,7 @@ export class AppService implements OnModuleInit {
 
   /* Admin Endpoints */
 
-  async getAdminMetrics(): Promise<{
+  async getAdminMetrics(authorization?: string): Promise<{
     metrics: {
       total_revenue: number;
       active_sessions: number;
@@ -486,6 +545,8 @@ export class AppService implements OnModuleInit {
       active_vouchers: number;
     };
   }> {
+    await this.requireAdmin(authorization);
+
     const completedPayments = await this.prisma.payment.aggregate({
       where: { status: 'completed' },
       _sum: { amount: true },
@@ -511,20 +572,15 @@ export class AppService implements OnModuleInit {
     };
   }
 
-  async generateVoucher(body: GenerateVoucherBody): Promise<{
+  async generateVoucher(
+    authorization: string | undefined,
+    body: GenerateVoucherBody,
+  ): Promise<{
     message: string;
     access_token: unknown;
   }> {
+    const adminUser = await this.requireAdmin(authorization);
     const plan = await this.getActivePlan(body.plan_id ?? '24-hours');
-    let adminUser = await this.prisma.user.findUnique({ where: { username: 'admin' } });
-    if (!adminUser) {
-      adminUser = await this.prisma.user.create({
-        data: {
-          username: 'admin',
-          passwordHash: bcrypt.hashSync('admin123', 10),
-        },
-      });
-    }
 
     const dummyPayment = await this.prisma.payment.create({
       data: {
@@ -556,14 +612,24 @@ export class AppService implements OnModuleInit {
     };
   }
 
-  async getAllSessions(): Promise<{ sessions: unknown[]; count: number }> {
+  async getAllSessions(authorization?: string): Promise<{
+    sessions: unknown[];
+    count: number;
+  }> {
+    await this.requireAdmin(authorization);
+
     const sessions = await this.prisma.session.findMany({
       orderBy: { created_at: 'desc' },
       include: { user: true, plan: true },
     });
 
-    const serialized = sessions.map((s: any) =>
-      this.serializeSession(s, s.user.username, s.plan.name, s.plan.duration_display),
+    const serialized = sessions.map((s: SessionWithRelations) =>
+      this.serializeSession(
+        s,
+        s.user.username,
+        s.plan.name,
+        s.plan.duration_display,
+      ),
     );
 
     return { sessions: serialized, count: serialized.length };
@@ -571,16 +637,70 @@ export class AppService implements OnModuleInit {
 
   /* Private Helper Methods */
 
+  private async seedAdminIfEmpty() {
+    await this.prisma.user.upsert({
+      where: { username: 'admin' },
+      update: { role: 'admin' },
+      create: {
+        username: 'admin',
+        passwordHash: bcrypt.hashSync('admin123', 10),
+        role: 'admin',
+      },
+    });
+  }
+
   private async seedPlansIfEmpty() {
     const count = await this.prisma.plan.count();
     if (count === 0) {
       const plans = [
-        { id: '2-hours', name: '2 hours', price: 500, duration_hours: 2, duration_display: '2 hours', sort_order: 1 },
-        { id: '12-hours', name: '12 hours', price: 1000, duration_hours: 12, duration_display: '12 hours', sort_order: 2 },
-        { id: '24-hours', name: '24 hours', price: 1500, duration_hours: 24, duration_display: '24 hours', sort_order: 3 },
-        { id: '3-days', name: '3 days', price: 3000, duration_hours: 72, duration_display: '3 days', sort_order: 4 },
-        { id: '1-week', name: '1 week', price: 5000, duration_hours: 168, duration_display: '1 week', sort_order: 5 },
-        { id: '1-month', name: '1 month', price: 20000, duration_hours: 720, duration_display: '1 month', sort_order: 6 },
+        {
+          id: '2-hours',
+          name: '2 hours',
+          price: 500,
+          duration_hours: 2,
+          duration_display: '2 hours',
+          sort_order: 1,
+        },
+        {
+          id: '12-hours',
+          name: '12 hours',
+          price: 1000,
+          duration_hours: 12,
+          duration_display: '12 hours',
+          sort_order: 2,
+        },
+        {
+          id: '24-hours',
+          name: '24 hours',
+          price: 1500,
+          duration_hours: 24,
+          duration_display: '24 hours',
+          sort_order: 3,
+        },
+        {
+          id: '3-days',
+          name: '3 days',
+          price: 3000,
+          duration_hours: 72,
+          duration_display: '3 days',
+          sort_order: 4,
+        },
+        {
+          id: '1-week',
+          name: '1 week',
+          price: 5000,
+          duration_hours: 168,
+          duration_display: '1 week',
+          sort_order: 5,
+        },
+        {
+          id: '1-month',
+          name: '1 month',
+          price: 20000,
+          duration_hours: 720,
+          duration_display: '1 month',
+          sort_order: 6,
+        },
       ];
 
       for (const p of plans) {
@@ -614,6 +734,14 @@ export class AppService implements OnModuleInit {
       throw new UnauthorizedException({ detail: 'Invalid token.' });
     }
 
+    return user;
+  }
+
+  private async requireAdmin(authorization?: string) {
+    const user = await this.authenticate(authorization);
+    if (user.role !== 'admin') {
+      throw new UnauthorizedException({ detail: 'Admin privileges required.' });
+    }
     return user;
   }
 
@@ -670,7 +798,9 @@ export class AppService implements OnModuleInit {
     macAddress?: string,
   ) {
     const now = new Date();
-    const endTime = new Date(now.getTime() + plan.duration_hours * 60 * 60 * 1000);
+    const endTime = new Date(
+      now.getTime() + plan.duration_hours * 60 * 60 * 1000,
+    );
 
     const session = await this.prisma.session.create({
       data: {
@@ -703,7 +833,9 @@ export class AppService implements OnModuleInit {
     macAddress?: string,
   ) {
     const now = new Date();
-    const expiresAt = new Date(now.getTime() + plan.duration_hours * 60 * 60 * 1000);
+    const expiresAt = new Date(
+      now.getTime() + plan.duration_hours * 60 * 60 * 1000,
+    );
 
     return this.prisma.accessToken.create({
       data: {
@@ -768,6 +900,7 @@ export class AppService implements OnModuleInit {
   private serializeUser(user: {
     id: string;
     username: string;
+    role: string;
     email?: string | null;
     phone_number?: string | null;
     is_active_session: boolean;
@@ -775,6 +908,7 @@ export class AppService implements OnModuleInit {
     return {
       id: user.id,
       username: user.username,
+      role: user.role,
       email: user.email ?? undefined,
       phone_number: user.phone_number ?? undefined,
       is_active_session: user.is_active_session,
@@ -793,9 +927,9 @@ export class AppService implements OnModuleInit {
     is_active: boolean;
     sort_order: number;
   }): unknown {
-    let parsedFeatures = [];
+    let parsedFeatures: unknown = [];
     try {
-      parsedFeatures = JSON.parse(plan.features);
+      parsedFeatures = JSON.parse(plan.features) as unknown;
     } catch {
       parsedFeatures = [];
     }
@@ -807,7 +941,7 @@ export class AppService implements OnModuleInit {
       price: plan.price,
       duration_hours: plan.duration_hours,
       duration_display: plan.duration_display,
-      features: parsedFeatures,
+      features: Array.isArray(parsedFeatures) ? parsedFeatures : [],
       is_active: plan.is_active,
       sort_order: plan.sort_order,
     };
@@ -869,7 +1003,9 @@ export class AppService implements OnModuleInit {
     planName: string,
     planDuration: string,
   ): unknown {
-    const isActive = session.status === 'active' && new Date(session.end_time).getTime() > Date.now();
+    const isActive =
+      session.status === 'active' &&
+      new Date(session.end_time).getTime() > Date.now();
     return {
       id: session.id,
       user: session.user_id,

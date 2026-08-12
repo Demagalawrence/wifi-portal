@@ -17,7 +17,9 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('WiFi Hotspot Portal API')
-    .setDescription('NestJS backend API for WiFi Captive Portal with Mobile Money payments and session lifecycle')
+    .setDescription(
+      'NestJS backend API for WiFi Captive Portal with Mobile Money payments and session lifecycle',
+    )
     .setVersion('1.0')
     .addBearerAuth()
     .build();
@@ -27,7 +29,11 @@ async function bootstrap() {
 
   const port = process.env.PORT ?? 8000;
   await app.listen(port);
-  console.log(`🚀 NestJS WiFi Portal Backend running on http://localhost:${port}`);
-  console.log(`📚 Swagger OpenAPI documentation at http://localhost:${port}/api/docs`);
+  console.log(
+    `🚀 NestJS WiFi Portal Backend running on http://localhost:${port}`,
+  );
+  console.log(
+    `📚 Swagger OpenAPI documentation at http://localhost:${port}/api/docs`,
+  );
 }
 void bootstrap();
