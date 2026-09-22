@@ -365,8 +365,19 @@ h6 {
 
 .payment-grid-3 {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--spacing-3);
+}
+
+.payment-grid-3 .btn {
+  width: 100%;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.payment-header {
+  gap: var(--spacing-2);
 }
 
 /* Plan Cards Grid */
@@ -385,6 +396,9 @@ h6 {
   cursor: pointer;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .plan-card:hover {
@@ -401,8 +415,11 @@ h6 {
 
 .plan-header {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: space-between;
-  align-items: flex-start;
+  column-gap: var(--spacing-3);
+  row-gap: var(--spacing-2);
   margin-bottom: var(--spacing-2);
 }
 
@@ -410,11 +427,14 @@ h6 {
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
+  min-width: 0;
 }
 
 .plan-name {
   font-weight: 600;
   color: var(--color-text-primary);
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .plan-badge {
@@ -431,6 +451,20 @@ h6 {
   font-weight: 700;
   font-family: var(--font-outfit), 'Outfit', sans-serif;
   color: var(--color-text-primary);
+  flex-shrink: 0;
+}
+
+.plan-duration {
+  color: var(--color-text-muted);
+  min-width: 0;
+}
+
+.plan-pay-btn {
+  width: auto;
+  min-width: 4rem;
+  padding: 0.5rem 1rem;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 .plan-features {
@@ -743,4 +777,40 @@ h6 {
 
 .text-center {
   text-align: center;
+}
+
+/* Responsive adjustments for narrow phones */
+@media (max-width: 480px) {
+  .glass-panel.p-8 {
+    padding: var(--spacing-4);
+  }
+
+  .payment-header {
+    flex-wrap: wrap;
+    row-gap: var(--spacing-2);
+  }
+
+  .status-alert {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 380px) {
+  .logo-container {
+    gap: var(--spacing-2);
+  }
+
+  .logo-icon {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+
+  .logo-container .text-xl {
+    font-size: 1.05rem;
+  }
+
+  .tabs-header .tab-btn {
+    font-size: 0.8125rem;
+    padding: 8px 8px;
+  }
 }

@@ -39,18 +39,17 @@ export default function PlanCard({ plan, isSelected, onSelect }: PlanCardProps) 
       onKeyDown={handleKeyDown}
     >
       <div className="plan-header">
-        <div className="flex items-center">
+        <div className="plan-title-row">
           <span className="plan-name">{plan.name}</span>
-          <span className="plan-price" style={{ marginLeft: '60px' }}>
-            {formattedPrice}/-
-          </span>
+          <span className="plan-price">{formattedPrice}/-</span>
         </div>
-        {duration !== plan.name && <span className="text-muted text-sm">{duration}</span>}
+        {duration !== plan.name && (
+          <span className="plan-duration text-sm">{duration}</span>
+        )}
 
         <button
           type="button"
-          className={`btn ${isSelected ? 'btn-primary' : 'btn-outline'}`}
-          style={{ width: 'auto', padding: '0.5rem 1rem' }}
+          className={`btn plan-pay-btn ${isSelected ? 'btn-primary' : 'btn-outline'}`}
           onClick={handleButtonClick}
           aria-label={`Pay for ${plan.name} plan`}
         >

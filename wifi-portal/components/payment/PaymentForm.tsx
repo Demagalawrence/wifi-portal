@@ -22,7 +22,7 @@ export default function PaymentForm() {
 
   return (
     <form className="glass-panel p-8 mb-6 animate-fade-in" onSubmit={handleSubmit} noValidate>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between payment-header mb-6">
         <div>
           <h2 className="text-2xl font-bold">Complete Payment</h2>
           <p className="text-sm text-secondary">
@@ -32,7 +32,7 @@ export default function PaymentForm() {
         <button
           type="button"
           onClick={() => actions.setSelectedPlan(null)}
-          className="text-sm text-muted hover:text-primary transition-colors cursor-pointer"
+          className="bg-transparent border-0 text-sm text-white hover:text-primary transition-colors cursor-pointer"
         >
           Change Plan
         </button>
