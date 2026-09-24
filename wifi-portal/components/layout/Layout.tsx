@@ -31,7 +31,7 @@ export default function Layout({ children }: LayoutProps) {
       <footer className="app-footer">
         <div className="container">
           <p className="text-secondary text-sm">
-            Need Support? Call: <span className="text-primary font-medium">0744 219 162</span>
+            Need Support? Call: <span className="text-primary font-medium">0744 219 162</span> or <span className="text-primary font-medium">0702 595 326</span>
           </p>
           <p className="text-muted text-sm mt-1">
             © 2026 WiFi Hotspot Portal • KEE TECHNOLOGY
