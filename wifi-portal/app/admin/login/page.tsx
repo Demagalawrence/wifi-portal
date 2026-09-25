@@ -5,7 +5,7 @@ import AdminLoginForm from '@/components/auth/AdminLoginForm';
 
 export const metadata: Metadata = {
   title: 'Admin Sign In',
-  description: 'Sign in to the WiFi Hotspot admin gateway.',
+  description: 'Sign in to the Netify admin gateway.',
   robots: { index: false, follow: false },
 };
 

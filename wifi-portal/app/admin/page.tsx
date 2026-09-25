@@ -124,7 +124,7 @@ export default function AdminDashboardPage() {
           {/* Header Title */}
           <div className="mb-8 flex items-center justify-between">
             <div>
-              <h2 className="text-3xl font-bold">WiFi Hotspot Management</h2>
+              <h2 className="text-3xl font-bold">Netify Management</h2>
               <p className="text-secondary text-sm mt-1">
                 Real-time dashboard for metrics, session monitoring, and voucher generation.
               </p>

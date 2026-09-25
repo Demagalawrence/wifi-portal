@@ -17,7 +17,7 @@ const outfit = Outfit({
   display: 'swap',
 });
 
-const siteTitle = 'WiFi Hotspot Portal';
+const siteTitle = 'Netify';
 const siteDescription =
   'Get connected instantly. Buy a WiFi plan, pay securely with Airtel Money or MTN Mobile Money, and start browsing in seconds.';
 
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   },
   description: siteDescription,
   applicationName: siteTitle,
-  authors: [{ name: 'WiFi Hotspot Portal' }],
+  authors: [{ name: 'Netify' }],
   keywords: ['wifi', 'hotspot', 'internet', 'plans', 'airtel money', 'mtn mobile money', 'rwanda'],
   openGraph: {
     type: 'website',

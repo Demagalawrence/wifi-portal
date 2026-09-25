@@ -17,7 +17,7 @@ export default function Layout({ children }: LayoutProps) {
         <div className="container header-content">
           <Link href="/" className="logo-container">
             <WifiIcon className="logo-icon" aria-hidden="true" />
-            <span className="text-xl font-bold text-gradient">WiFi Hotspot</span>
+            <span className="text-xl font-bold text-gradient">Netify</span>
           </Link>
         </div>
       </header>
@@ -34,7 +34,7 @@ export default function Layout({ children }: LayoutProps) {
             Need Support? Call: <span className="text-primary font-medium">0744 219 162</span> or <span className="text-primary font-medium">0702 595 326</span>
           </p>
           <p className="text-muted text-sm mt-1">
-            © 2026 WiFi Hotspot Portal • KEE TECHNOLOGY
+            © 2026 Netify • KEE TECHNOLOGY
           </p>
         </div>
       </footer>

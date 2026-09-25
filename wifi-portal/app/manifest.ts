@@ -2,8 +2,8 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'WiFi Hotspot Portal',
-    short_name: 'WiFi Portal',
+    name: 'Netify',
+    short_name: 'Netify',
     description: 'Buy WiFi plans and connect instantly.',
     start_url: '/',
     display: 'standalone',
